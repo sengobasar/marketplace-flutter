@@ -1,5 +1,7 @@
 // lib/widgets/product_card.dart
 
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 
@@ -37,6 +39,48 @@ class ProductCard extends StatelessWidget {
     }
   }
 
+  Widget _buildImage(BuildContext context) {
+    final theme = Theme.of(context);
+
+    // If user uploaded a local image
+    if (product.localImagePath != null && product.localImagePath!.isNotEmpty) {
+      if (kIsWeb) {
+        return Image.network(
+          product.localImagePath!,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _placeholder(theme),
+        );
+      } else {
+        return Image.file(
+          File(product.localImagePath!),
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _placeholder(theme),
+        );
+      }
+    }
+
+    // Default network image
+    return Image.network(
+      product.imageUrl,
+      fit: BoxFit.cover,
+      loadingBuilder: (context, child, progress) {
+        if (progress == null) return child;
+        return Container(
+          color: theme.colorScheme.surfaceVariant,
+          child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        );
+      },
+      errorBuilder: (_, __, ___) => _placeholder(theme),
+    );
+  }
+
+  Widget _placeholder(ThemeData theme) {
+    return Container(
+      color: theme.colorScheme.surfaceVariant,
+      child: const Icon(Icons.image_not_supported, size: 40),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -46,31 +90,23 @@ class ProductCard extends StatelessWidget {
       child: Card(
         clipBehavior: Clip.antiAlias,
         elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image + badge + favorite
             Stack(
               children: [
                 AspectRatio(
                   aspectRatio: 4 / 3,
-                  child: Image.network(
-                    product.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: theme.colorScheme.surfaceVariant,
-                      child: const Icon(Icons.image_not_supported, size: 40),
-                    ),
-                  ),
+                  child: _buildImage(context),
                 ),
-                // Listing type badge
                 Positioned(
                   top: 8,
                   left: 8,
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: _badgeColor(product.listingType),
                       borderRadius: BorderRadius.circular(20),
@@ -84,7 +120,6 @@ class ProductCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Favorite button
                 Positioned(
                   top: 4,
                   right: 4,
@@ -100,8 +135,9 @@ class ProductCard extends StatelessWidget {
                         product.isFavorite
                             ? Icons.favorite
                             : Icons.favorite_border,
-                        color:
-                            product.isFavorite ? Colors.red : Colors.grey[600],
+                        color: product.isFavorite
+                            ? Colors.red
+                            : Colors.grey[600],
                         size: 18,
                       ),
                     ),
@@ -109,7 +145,6 @@ class ProductCard extends StatelessWidget {
                 ),
               ],
             ),
-            // Info
             Padding(
               padding: const EdgeInsets.all(10),
               child: Column(

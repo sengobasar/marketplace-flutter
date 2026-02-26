@@ -9,6 +9,7 @@ class Product {
   final double price;
   final String category;
   final String imageUrl;
+  final String? localImagePath; // for user uploaded images
   final String sellerName;
   final String sellerLocation;
   final ListingType listingType;
@@ -22,6 +23,7 @@ class Product {
     required this.price,
     required this.category,
     required this.imageUrl,
+    this.localImagePath,
     required this.sellerName,
     required this.sellerLocation,
     required this.listingType,
