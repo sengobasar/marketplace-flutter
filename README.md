@@ -2,6 +2,12 @@
 
 A mobile marketplace app built with Flutter where users can buy, sell, and exchange items — similar to OLX or Facebook Marketplace.
 
+<img width="974" height="864" alt="image" src="https://github.com/user-attachments/assets/70ebd7bd-713a-4e93-bcad-c95e85ae08d7" />
+<img width="970" height="855" alt="image" src="https://github.com/user-attachments/assets/d9c4d2d6-a28a-43cf-898e-ff25f5a3b64b" />
+<img width="978" height="866" alt="image" src="https://github.com/user-attachments/assets/ac01bae0-98b4-4eb3-ad94-d5c4def6cc2b" />
+
+
+
 ## Features
 
 - Browse products in a grid layout with search and category filters
