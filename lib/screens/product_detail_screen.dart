@@ -119,7 +119,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 fit: StackFit.expand,
                 children: [
                   Image.network(
-                    product.imageUrl,
+                    product.imageUrls.isNotEmpty ? product.imageUrls.first : '',
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
                       color: theme.colorScheme.surfaceVariant,

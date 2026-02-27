@@ -336,7 +336,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
                                 child: Image.network(
-                                  product.imageUrl,
+                                  product.imageUrls.isNotEmpty ? product.imageUrls.first : '',
                                   width: 60,
                                   height: 60,
                                   fit: BoxFit.cover,

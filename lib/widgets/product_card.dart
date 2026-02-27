@@ -43,16 +43,16 @@ class ProductCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     // If user uploaded a local image
-    if (product.localImagePath != null && product.localImagePath!.isNotEmpty) {
+    if (product.localImagePaths != null && product.localImagePaths!.isNotEmpty) {
       if (kIsWeb) {
         return Image.network(
-          product.localImagePath!,
+          product.localImagePaths!.first,
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => _placeholder(theme),
         );
       } else {
         return Image.file(
-          File(product.localImagePath!),
+          File(product.localImagePaths!.first),
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => _placeholder(theme),
         );
@@ -61,7 +61,7 @@ class ProductCard extends StatelessWidget {
 
     // Default network image
     return Image.network(
-      product.imageUrl,
+      product.imageUrls.isNotEmpty ? product.imageUrls.first : '',
       fit: BoxFit.cover,
       loadingBuilder: (context, child, progress) {
         if (progress == null) return child;

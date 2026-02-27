@@ -1,6 +1,9 @@
 // lib/screens/add_product_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io' show File;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../models/product.dart';
 import '../data/mock_data.dart';
 
@@ -21,6 +24,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
   String _selectedCategory = 'Electronics';
   ListingType _listingType = ListingType.sale;
   bool _isSubmitting = false;
+  final List<XFile> _pickedImages = [];
+  final ImagePicker _picker = ImagePicker();
 
   final List<String> _categories =
       productCategories.where((c) => c != 'All').toList();
@@ -34,8 +39,42 @@ class _AddProductScreenState extends State<AddProductScreen> {
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    try {
+      final List<XFile> images = await _picker.pickMultiImage(
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+      if (images.isNotEmpty) {
+        setState(() {
+          // Add unique images, up to 4 total
+          for (var img in images) {
+            if (_pickedImages.length < 4 &&
+                !_pickedImages.any((el) => el.path == img.path)) {
+              _pickedImages.add(img);
+            }
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking images: $e')),
+        );
+      }
+    }
+  }
+
   Future<void> _submitProduct() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (_pickedImages.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please add at least one photo')),
+      );
+      return;
+    }
 
     setState(() => _isSubmitting = true);
     await Future.delayed(const Duration(seconds: 1));
@@ -46,8 +85,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
       description: _descController.text.trim(),
       price: double.tryParse(_priceController.text) ?? 0,
       category: _selectedCategory,
-      imageUrl:
-          'https://picsum.photos/id/${DateTime.now().second + 100}/400/300',
+      imageUrls: _pickedImages.map((img) => img.path).toList(),
+      localImagePaths: _pickedImages.map((img) => img.path).toList(),
       sellerName: 'You',
       sellerLocation: _locationController.text.trim(),
       listingType: _listingType,
@@ -75,30 +114,78 @@ class _AddProductScreenState extends State<AddProductScreen> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            // Image placeholder
-            Container(
-              height: 160,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceVariant.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: theme.colorScheme.outline.withOpacity(0.4),
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add_a_photo_outlined,
-                      size: 40, color: theme.colorScheme.primary),
-                  const SizedBox(height: 8),
-                  Text('Photo will be auto assigned',
-                      style: TextStyle(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.w600)),
-                  Text('from picsum.photos',
-                      style:
-                          TextStyle(color: Colors.grey[500], fontSize: 12)),
-                ],
+            // Multi Image Grid
+            Text('Photos (at least 1 required, max 4)',
+                style: theme.textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 100,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: 4,
+                itemBuilder: (context, index) {
+                  final bool hasImage = index < _pickedImages.length;
+                  return Container(
+                    width: 100,
+                    margin: const EdgeInsets.only(right: 12),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceVariant.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: theme.colorScheme.outline.withOpacity(0.4),
+                      ),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: hasImage
+                        ? Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              kIsWeb
+                                  ? Image.network(_pickedImages[index].path,
+                                      fit: BoxFit.cover)
+                                  : Image.file(
+                                      File(_pickedImages[index].path),
+                                      fit: BoxFit.cover),
+                              Positioned(
+                                right: 4,
+                                top: 4,
+                                child: GestureDetector(
+                                  onTap: () => setState(() =>
+                                      _pickedImages.removeAt(index)),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(2),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.black54,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.close,
+                                        size: 14, color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        : InkWell(
+                            onTap: _pickImage,
+                            borderRadius: BorderRadius.circular(12),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.add_a_photo_outlined,
+                                    size: 28,
+                                    color: theme.colorScheme.primary),
+                                const SizedBox(height: 4),
+                                Text('Add',
+                                    style: TextStyle(
+                                        fontSize: 10,
+                                        color: theme.colorScheme.primary,
+                                        fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                  );
+                },
               ),
             ),
 
